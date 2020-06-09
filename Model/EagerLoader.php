@@ -210,6 +210,14 @@ class EagerLoader {
 			$assocAlias = $habtmAlias;
 			$assocKey = $habtmParentKey;
 
+		        empty($this->assocFieldsAdded)? $this->assocFieldsAdded = []: '';
+		        if(empty($this->assocFieldsAdded[$assocAlias])) {
+				$model->loadModel($assocAlias);
+				$assoc_fs = array_keys($model->{$assocAlias}->schema());
+			foreach($assoc_fs as $f) { $options = $this->addField($options, "$assocAlias.$f"); }
+				$this->assocFieldsAdded[$assocAlias] = true;
+		        }
+			
 			$options = $this->buildJoinQuery($habtm, $options, 'INNER', array(
 				"$alias.$targetKey" => "$habtmAlias.$habtmTargetKey",
 			), $options);
@@ -290,7 +298,7 @@ class EagerLoader {
 			if ($result[$alias][$targetKey] === null) {
 				// Remove NULL association created by LEFT JOIN
 				if (empty($eager)) {
-					$assocResults[$n] = array( $alias => array() );
+                    			$assocResults[$n] = array( $alias => $result[$alias] );
 				}
 			} else {
 				$assocResults[$n] = array( $alias => $result[$alias] );
