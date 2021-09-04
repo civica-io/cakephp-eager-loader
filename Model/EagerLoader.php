@@ -44,6 +44,11 @@ class EagerLoader {
  * @return array Modified query
  */
 	public static function handleBeforeFind(Model $model, $query) {
+
+		if(!empty($query['join_types'])) {
+			$model->join_types = $query['join_types'];
+		}
+
 		if (is_array($query)) {
 			if (isset($query['contain'])) {
 				if ($query['contain'] === false) {
@@ -144,7 +149,18 @@ class EagerLoader {
 			if ($external) {
 				$query = $this->addField($query, "$parentAlias.$parentKey");
 			} else {
-				$query = $this->buildJoinQuery($target, $query, 'LEFT', array("$parentAlias.$parentKey" => "$alias.$targetKey"), $options);
+				if($alias == 'Event') {
+					#pr($query);
+					#pr(array("$parentAlias.$parentKey" => "$alias.$targetKey"));
+				}
+
+				$joinType = 'LEFT';
+
+				if(!empty($model->join_types[$alias])) {
+					$joinType = $model->join_types[$alias];
+					#pr('jT: '.$joinType);
+				}
+				$query = $this->buildJoinQuery($target, $query, $joinType, array("$parentAlias.$parentKey" => "$alias.$targetKey"), $options);
 			}
 		}
 
@@ -217,7 +233,7 @@ class EagerLoader {
 			foreach($assoc_fs as $f) { $options = $this->addField($options, "$assocAlias.$f"); }
 				$this->assocFieldsAdded[$assocAlias] = true;
 		        }
-			
+
 			$options = $this->buildJoinQuery($habtm, $options, 'INNER', array(
 				"$alias.$targetKey" => "$habtmAlias.$habtmTargetKey",
 			), $options);
@@ -410,6 +426,15 @@ class EagerLoader {
 				unset($query['conditions'][$key]);
 				$conditions = $db->conditionKeysToString(array($key => $val), true, $model);
 				$query['conditions'][] = $db->expression($conditions[0]);
+			}
+		}
+
+
+		if(method_exists($model,'queryId')) {
+			$qid = $model->queryId();
+
+			if(array_search($qid, $query['conditions']) === false) {
+				$query['conditions'][] = $qid;
 			}
 		}
 
