@@ -579,7 +579,7 @@ class EagerLoader {
 			$finderQuery = $relation['finderQuery'];
 		}
 
-		$meta = compact(
+		@$meta = compact(
 			'alias', 'parent', 'target',
 			'parentAlias', 'parentKey',
 			'targetKey', 'aliasPath', 'propertyPath',
