@@ -579,13 +579,19 @@ class EagerLoader {
 			$finderQuery = $relation['finderQuery'];
 		}
 
-		@$meta = compact(
-			'alias', 'parent', 'target',
+		$var_names = ['alias', 'parent', 'target',
 			'parentAlias', 'parentKey',
 			'targetKey', 'aliasPath', 'propertyPath',
 			'options', 'has', 'many', 'belong', 'external', 'finderQuery',
-			'habtm', 'habtmAlias', 'habtmParentKey', 'habtmTargetKey'
-		);
+			'habtm', 'habtmAlias', 'habtmParentKey', 'habtmTargetKey'];
+
+		foreach($var_names as $var_name) {
+			if(!isset(${$var_name})) {
+				${$var_name} = false;
+			}
+		}
+
+		$meta = compact($var_names);
 
 		if ($this->isExternal($context, $meta)) {
 			$meta['propertyPath'] = ($context['propertyPath'] ? $parentAlias . '.' : '') . $alias;
